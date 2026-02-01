@@ -37,6 +37,12 @@ def register_tools(mcp: FastMCP) -> None:
         Returns:
             dict with success status, data, and metadata
         """
+        # Validate offset and limit are non-negative
+        if offset < 0:
+            return {"error": "offset must be non-negative"}
+        if limit is not None and limit < 0:
+            return {"error": "limit must be non-negative"}
+
         try:
             from openpyxl import load_workbook
         except ImportError:
@@ -110,7 +116,9 @@ def register_tools(mcp: FastMCP) -> None:
                 for row in data_rows:
                     row_dict = {}
                     for i, value in enumerate(row):
-                        col_name = columns[i] if i < len(columns) and columns[i] else f"Column_{i+1}"
+                        col_name = (
+                            columns[i] if i < len(columns) and columns[i] else f"Column_{i + 1}"
+                        )
                         row_dict[str(col_name)] = value
                     rows_as_dicts.append(row_dict)
 
@@ -118,7 +126,10 @@ def register_tools(mcp: FastMCP) -> None:
                     "success": True,
                     "path": path,
                     "sheet_name": ws.title,
-                    "columns": [str(c) if c is not None else f"Column_{i+1}" for i, c in enumerate(columns)],
+                    "columns": [
+                        str(c) if c is not None else f"Column_{i + 1}"
+                        for i, c in enumerate(columns)
+                    ],
                     "column_count": len(columns),
                     "rows": rows_as_dicts,
                     "row_count": len(rows_as_dicts),
@@ -158,8 +169,14 @@ def register_tools(mcp: FastMCP) -> None:
         Returns:
             dict with success status and metadata
         """
+        # Validate offset and limit are non-negative
+        if offset < 0:
+            return {"error": "offset must be non-negative"}
+        if limit is not None and limit < 0:
+            return {"error": "limit must be non-negative"}
+
         try:
-            from openpyxl import Workbook
+            from openpyxl import load_workbook
         except ImportError:
             return {
                 "error": (
@@ -367,19 +384,24 @@ def register_tools(mcp: FastMCP) -> None:
                     columns = []
                     first_row = next(ws.iter_rows(min_row=1, max_row=1, values_only=True), None)
                     if first_row:
-                        columns = [str(c) if c is not None else f"Column_{i+1}" for i, c in enumerate(first_row)]
+                        columns = [
+                            str(c) if c is not None else f"Column_{i + 1}"
+                            for i, c in enumerate(first_row)
+                        ]
 
                     # Count rows (excluding header)
                     row_count = 0
                     for _ in ws.iter_rows(min_row=2, values_only=True):
                         row_count += 1
 
-                    sheets_info.append({
-                        "name": sheet_name,
-                        "columns": columns,
-                        "column_count": len(columns),
-                        "row_count": row_count,
-                    })
+                    sheets_info.append(
+                        {
+                            "name": sheet_name,
+                            "columns": columns,
+                            "column_count": len(columns),
+                            "row_count": row_count,
+                        }
+                    )
 
                 return {
                     "success": True,
